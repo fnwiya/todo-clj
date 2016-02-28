@@ -1,23 +1,34 @@
 (ns todo-clj.handler.todo
   (:require [compojure.core :refer [defroutes context GET POST]]
+            [todo-clj.db.todo :as todo]
             [todo-clj.util.response :as res]
             [todo-clj.view.todo :as view]))
 
-(def todo-list
-  [{:title "make breakfast"}
-   {:title "put out the burnable garbage"}
-   {:title "pick up some eggs on my way home"}
-   {:title "clean the bath"}])
-
 (defn todo-index [req]
+  (let [todo-list (todo/find-todo-all)]
   (-> (view/todo-index-view req todo-list)
+      res/response
+      res/html)))
+
+(defn todo-new [req]
+  (-> (view/todo-new-view req)
       res/response
       res/html))
 
-(defn todo-new [req] "TODO new")
-(defn todo-new-post [req] "TODO new post")
+(defn todo-new-post [{:as req :keys [params]}]
+  (if-let [todo (first (todo/save-todo (:title params)))]
+    (-> (res/redirect (str "/todo/" (:id todo)))
+        (assoc :flash {:msg "complete adding todo"})
+        res/html)))
+
 (defn todo-search [req] "TODO search")
-(defn todo-show [req] "TODO show")
+
+(defn todo-show [{:as req :keys [params]}]
+  (if-let [todo (todo/find-first-todo (Long/parseLong (:todo-id params)))]
+    (-> (view/todo-show-view req todo)
+        res/response
+        res/html)))
+
 (defn todo-edit [req] "TODO edit")
 (defn todo-edit-post [req] "TODO edit post")
 (defn todo-delete [req] "TODO delete")
