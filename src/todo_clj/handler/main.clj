@@ -11,4 +11,4 @@
 
 (defroutes main-routes
   (GET "/" _ home)
-  (route/not-found "<h1>Not found</h1>"))
+  (route/not-found res/not-found!))
